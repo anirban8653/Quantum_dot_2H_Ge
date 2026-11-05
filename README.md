@@ -1,1 +1,1 @@
-Calculation of the quantum dot model in2H-Ge nanowire.
+Calculation of the quantum dot model in 2H-Ge nanowire.

@@ -1,0 +1,70 @@
+#!/bin/bash
+
+#SBATCH -J g_factor
+#SBATCH -o job.%j.out
+#SBATCH -e job.%j.err
+#SBATCH -p cpu
+#SBATCH -w x9
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=30
+#SBATCH -t 24:00:00
+
+# -------------------------------------------------
+# Intel MPI environment needed by Pymablock/MUMPS
+# -------------------------------------------------
+
+if [ -f /opt/intel/oneapi/mpi/2021.15/env/vars.sh ]; then
+    source /opt/intel/oneapi/mpi/2021.15/env/vars.sh
+else
+    export PATH=/opt/intel/oneapi/mpi/2021.15/bin:$PATH
+    export LD_LIBRARY_PATH=/opt/intel/oneapi/mpi/2021.15/lib:$LD_LIBRARY_PATH
+fi
+
+# -------------------------------------------------
+# Prevent every Pool worker from creating extra
+# OpenMP or BLAS threads
+# -------------------------------------------------
+
+export OMP_NUM_THREADS=1
+export OPENBLAS_NUM_THREADS=1
+export MKL_NUM_THREADS=1
+export NUMEXPR_NUM_THREADS=1
+
+# -------------------------------------------------
+# Activate the Python environment
+# -------------------------------------------------
+
+source /u0/anirban/miniconda3/etc/profile.d/conda.sh
+conda activate base
+
+# -------------------------------------------------
+# Diagnostics
+# -------------------------------------------------
+
+echo "=========================================="
+echo "Job ID             : $SLURM_JOB_ID"
+echo "Node               : $(hostname)"
+echo "Python             : $(which python3)"
+echo "Python version     : $(python3 --version)"
+echo "Allocated CPUs     : $SLURM_CPUS_PER_TASK"
+echo "MPI executable     : $(which mpirun)"
+echo "=========================================="
+
+# Confirm that mpi4py can load Intel MPI.
+# Stop the job immediately if this fails.
+python3 - <<'PY'
+from mpi4py import MPI
+
+print("MPI loaded successfully")
+print(MPI.Get_library_version())
+PY
+
+if [ $? -ne 0 ]; then
+    echo "ERROR: MPI runtime could not be loaded."
+    exit 1
+fi
+
+# One Python program creates the multiprocessing Pool
+# python3 hybridized_bands_self_consistent.py
+python3 gfactor_Bz_variation_Ef_signed.py

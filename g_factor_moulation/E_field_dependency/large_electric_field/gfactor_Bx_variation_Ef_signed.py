@@ -104,7 +104,7 @@ def make_system(B):
         y2, z2 = site2.tag
         ymid = 0.5 * (y1 + y2) - y_center
         # Peierls phase for A_z = B_x y (same form as the original Bx script)
-        phase = np.exp(1j * phase_prefactor * ymid * (z1 - z2))
+        phase = np.exp(-1j * phase_prefactor * ymid * (z1 - z2))
         return blocks[(int(y1 - y2), int(z1 - z2))] * phase
 
     syst[(lat(y, z) for y in range(Ny) for z in range(Nz))] = onsite

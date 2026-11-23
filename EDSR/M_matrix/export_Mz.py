@@ -41,7 +41,8 @@ sigma_val = 0.12     # eV, shift-invert target
 N_EIG = 4            # the pair + next pair (gap check)
 
 E_V_um = 6.0         # electric field strength (V/um)
-# Field direction: angle theta (deg) from +y toward +z  (0 -> E_y, 90 -> E_z)
+# Field direction: angle theta (deg) from +z toward +y  (0 -> E_z, 90 -> E_y),
+# same convention as R_matrix/rashba_with_E_pymablock_kwant.py
 THETAS_DEG = [0.0, 90.0, 83.2]
 
 SX, SY, SZ = spin_matrix_small()
@@ -80,7 +81,7 @@ def site_tags(fsyst):
 
 
 def potential_diagonal(Ef, theta, tags):
-    """V = -E.(r - L/2) with E = Ef (cos theta, sin theta) in the (y, z) plane,
+    """V = -E.(r - L/2) with (E_y, E_z) = Ef (sin theta, cos theta),
     on the diagonal in the finalized site order (Ef in V/Angstrom, theta in rad)."""
     a = L / (Ny + 1)
     ypos = (tags[:, 0] + 1) * a - L / 2

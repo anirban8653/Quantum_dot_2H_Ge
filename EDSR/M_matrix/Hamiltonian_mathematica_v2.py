@@ -25,46 +25,27 @@ def dgso(a, kx, ry, rz):
 
 def gs_shifted_by(a, kx_base, ry, rz, B, n):
     """
-    B = (0, B, 0)
-    A = (Bz, 0, 0)
-    Return the modified gso block for position (ry, rz) with correct kx shift
-    """
-    if (ry, rz) == (0, 0):  # Diagonal block
-        kx_eff = kx_base + 2 * np.pi/a  * n * B * (a * 1e-10)**2 /(h/q)
-    elif (ry == 1 and rz == 0) :  # Upper off-diagonal
-        kx_eff = kx_base + 2 * np.pi/a  * n * B * (a * 1e-10)**2 /(h/q)
-    elif (ry == -1 and rz == 0):  # Lower off-diagonal
-        kx_eff = kx_base + 2 * np.pi/a  * n * B * (a * 1e-10)**2 /(h/q)
-    elif (ry == 0 and rz == 1) :  # Upper off-diagonal
-        kx_eff = kx_base + 2 * np.pi/a  * (n + 0.5) * B * (a * 1e-10)**2 /(h/q)
-    elif (ry == 0 and rz == -1):  # Lower off-diagonal
-        kx_eff = kx_base + 2 * np.pi/a  * (n - 0.5) * B * (a * 1e-10)**2 /(h/q)
-    else:
-        kx_eff = kx_base  # Other long-range blocks not involving kx
+    B = (0, B, 0),  A = (B z, 0, 0)  ->  kx -> kx + e B z / hbar.
 
-    return gso(a, kx_eff, ry, rz)  # Evaluate at shifted kx
+    n is the z coordinate (lattice units, measured from the wire centre) at
+    which A_x is evaluated: the site for an onsite block, the bond MIDPOINT
+    0.5*(z1 + z2) for a hopping block. The same shift is applied to every block
+    (blocks without kx dependence are unaffected), so no extra +-0.5 here.
+    """
+    kx_eff = kx_base + 2 * np.pi / a * n * B * (a * 1e-10)**2 / (h / q)
+    return gso(a, kx_eff, ry, rz)
 
 
 def gs_shifted_bz(a, kx_base, ry, rz, B, n):
     """
-    B = (0, 0, B)
-    A = (-By, 0, 0)
-    Return the modified gso block for position (ry, rz) with correct kx shift
-    """
-    if (ry, rz) == (0, 0):  # Diagonal block
-        kx_eff = kx_base - 2 * np.pi/a  * n * B * (a * 1e-10)**2 /(h/q)
-    elif (ry == 1 and rz == 0) :  # Upper off-diagonal
-        kx_eff = kx_base - 2 * np.pi/a  * (n + 0.5) * B * (a * 1e-10)**2 /(h/q)
-    elif (ry == -1 and rz == 0):  # Lower off-diagonal
-        kx_eff = kx_base - 2 * np.pi/a  * (n - 0.5) * B * (a * 1e-10)**2 /(h/q)
-    elif (ry == 0 and rz == 1) :  # Upper off-diagonal
-        kx_eff = kx_base - 2 * np.pi/a  * n * B * (a * 1e-10)**2 /(h/q)
-    elif (ry == 0 and rz == -1):  # Lower off-diagonal
-        kx_eff = kx_base - 2 * np.pi/a  * n * B * (a * 1e-10)**2 /(h/q)
-    else:
-        kx_eff = kx_base  # Other long-range blocks not involving kx
+    B = (0, 0, B),  A = (-B y, 0, 0)  ->  kx -> kx - e B y / hbar.
 
-    return gso(a, kx_eff, ry, rz)  # Evaluate at shifted kx
+    n is the y coordinate (lattice units, measured from the wire centre) at
+    which A_x is evaluated: the site for an onsite block, the bond MIDPOINT
+    0.5*(y1 + y2) for a hopping block. No extra +-0.5 here.
+    """
+    kx_eff = kx_base - 2 * np.pi / a * n * B * (a * 1e-10)**2 / (h / q)
+    return gso(a, kx_eff, ry, rz)
 
 
 

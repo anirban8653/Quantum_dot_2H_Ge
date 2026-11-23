@@ -41,7 +41,8 @@ sigma_val = 0.12     # eV, shift-invert target
 N_EIG = 4            # the pair + next pair (gap check)
 
 E_V_um = 6.0         # electric field strength (V/um)
-# Field direction: angle theta (deg) from +y toward +z  (0 -> E_y, 90 -> E_z)
+# Field direction: angle theta (deg) from +z toward +y  (0 -> E_z, 90 -> E_y),
+# same convention as R_matrix/rashba_with_E_pymablock_kwant.py
 THETAS_DEG = [0.0, 90.0, 83.2]
 
 SX, SY, SZ = spin_matrix_small()
@@ -68,7 +69,9 @@ def make_system(B):
         y1, z1 = site1.tag
         y2, z2 = site2.tag
         ymid = 0.5 * (y1 + y2) - y_center
-        phase = np.exp(1j * phase_prefactor * ymid * (z1 - z2))
+        # electron charge -e: H[1,2] *= exp(-i e/hbar int_2^1 A.dl), i.e. k -> k + eA/hbar,
+        # the same convention as the kx shift in export_My/Mz.py
+        phase = np.exp(-1j * phase_prefactor * ymid * (z1 - z2))
         return blocks[(int(y1 - y2), int(z1 - z2))] * phase
 
     syst[(lat(y, z) for y in range(Ny) for z in range(Nz))] = onsite
@@ -82,7 +85,7 @@ def site_tags(fsyst):
 
 
 def potential_diagonal(Ef, theta, tags):
-    """V = -E.(r - L/2) with E = Ef (cos theta, sin theta) in the (y, z) plane,
+    """V = -E.(r - L/2) with (E_y, E_z) = Ef (sin theta, cos theta),
     on the diagonal in the finalized site order (Ef in V/Angstrom, theta in rad)."""
     a = L / (Ny + 1)
     ypos = (tags[:, 0] + 1) * a - L / 2

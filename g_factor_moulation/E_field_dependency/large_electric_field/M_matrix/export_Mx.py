@@ -41,7 +41,7 @@ sigma_val = 0.12     # eV, shift-invert target
 N_EIG = 4            # the pair + next pair (gap check)
 
 E_V_um = 6.0         # electric field strength (V/um)
-E_DIRECTION = "z"    # "y" -> E_y, "z" -> E_z
+E_DIRECTION = "y"    # "y" -> E_y, "z" -> E_z
 
 SX, SY, SZ = spin_matrix_small()
 
@@ -67,7 +67,7 @@ def make_system(B):
         y1, z1 = site1.tag
         y2, z2 = site2.tag
         ymid = 0.5 * (y1 + y2) - y_center
-        phase = np.exp(1j * phase_prefactor * ymid * (z1 - z2))
+        phase = np.exp(-1j * phase_prefactor * ymid * (z1 - z2))
         return blocks[(int(y1 - y2), int(z1 - z2))] * phase
 
     syst[(lat(y, z) for y in range(Ny) for z in range(Nz))] = onsite

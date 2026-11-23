@@ -93,9 +93,10 @@ def make_system(B):
     def hopping(site1, site2):
         y1, z1 = site1.tag
         y2, z2 = site2.tag
-        ymid = 0.5 * (y1 + y2) - y_center
+        # gs_shifted_bz adds +-0.5 itself for (+-1, 0) bonds, so pass the tail
+        # site y2: the shift is then evaluated at the bond midpoint.
         return np.asarray(
-            gs_shifted_bz(a, kx, int(y1 - y2), int(z1 - z2), B, ymid), dtype=complex
+            gs_shifted_bz(a, kx, int(y1 - y2), int(z1 - z2), B, y2 - y_center), dtype=complex
         )
 
     syst[(lat(y, z) for y in range(Ny) for z in range(Nz))] = onsite

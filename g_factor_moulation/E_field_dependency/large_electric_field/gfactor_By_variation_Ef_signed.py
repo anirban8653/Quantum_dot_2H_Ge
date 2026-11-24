@@ -15,7 +15,9 @@ Method
    (P_E -> P_E X, with X the unitary closest to P_prev^dag P_E). In that smooth
    basis the vector g_y(E) changes continuously; when g_yy passes through zero
    it reverses direction, i.e. g_y(E_i) . g_y(E_{i-1}) < 0. The sign is
-   accumulated from these flips and referenced to E = 0.
+   accumulated from these flips. The overall sign is referenced to E = 0 in the
+   fixed convention: psi_new_basis + column 0 = larger <S_z> (spin-up first),
+   which gives g_xx < 0, g_yy > 0, g_zz < 0 at E = 0.
    Check: `overlap_min` (smallest singular value of P_prev^dag P_E) should stay
    close to 1. If it drops (say < 0.7) the field step is too large or another
    level crosses the pair -> use more field points.
@@ -41,7 +43,7 @@ import time
 import kwant
 import numpy as np
 from scipy.sparse.linalg import eigsh
-from Hamiltonian_mathematica_v2 import gs_shifted_by, spin_matrix_small, apply_spin_operator
+from Hamiltonian_mathematica_v2 import gs_shifted_by, spin_matrix_small, apply_spin_operator, psi_new_basis
 from tqdm.auto import tqdm
 
 # ---------------------------------------------
@@ -183,9 +185,17 @@ def run(direction):
             res.append(out)
     res.sort(key=lambda r: r[0])
 
-    # smooth pseudospin gauge + sign tracking
+    # Reference sign at the first field (E = 0) from the fixed pseudospin convention:
+    # psi_new_basis (S_z diagonal in the pair, <1|S_x|2> > 0), then column 0 = LARGER <S_z>
+    # (pseudospin up ~ spin up). In this convention, at E = 0: g_xx < 0, g_yy > 0, g_zz < 0.
+    _, P0, M0 = res[0][:3]
+    p1, p2 = psi_new_basis(P0[:, 0], P0[:, 1], None)
+    U = P0.conj().T @ np.column_stack((p2, p1))      # spin-up first
+    sign = float(np.sign(pauli_vector(U.conj().T @ M0 @ U)[1]))
+
+    # smooth pseudospin gauge + sign tracking (relative to the reference above)
     rows = []
-    P_prev, g_prev, sign = None, None, 1.0
+    P_prev, g_prev = None, None
     for Ef, P, M, E_pair, gap_next, _ in res:
         overlap_min = 1.0
         if P_prev is not None:

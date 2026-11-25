@@ -8,7 +8,10 @@ from pymablock import block_diagonalize
 from multiprocessing import Pool, cpu_count
 from tqdm.auto import tqdm
 
-from Hamiltonian_mathematica_v2 import psi_new_basis, gs_shifted_by
+from Hamiltonian_mathematica_v2 import (
+    gs_shifted_by, pseudospin_basis_spin_up_first, g_vector,
+)
+from numerical_gfactor import numerical_g_sweep, save_numerical
 
 # ---------------------------------
 # Parameters
@@ -170,14 +173,19 @@ def calculate_gfactor(Ef):
     """Calculate the effective spectrum and g-factor for one field value."""
     first_matrix = next(iter(_worker_heff_terms.values()))
     H_eff = np.zeros_like(first_matrix, dtype=complex)
+    H_B = np.zeros_like(first_matrix, dtype=complex)   # dH_eff/dBy, eV/T
 
     for (by_power, e_power), coefficient in _worker_heff_terms.items():
         H_eff += coefficient * _worker_B**by_power * Ef**e_power
+        if by_power == 1:
+            H_B += coefficient * Ef**e_power
 
     eigenvalues = eigh(H_eff, eigvals_only=True)
     gap = np.abs(eigenvalues[1] - eigenvalues[0])
-    gfactor = gap / (_worker_muB * _worker_B)
-    return Ef, H_eff, eigenvalues, gap, gfactor
+    gvec = g_vector(H_B, _worker_muB)        # (g_yx, g_yy, g_yz)
+    # |gvec| = gap / (muB B); sign taken from the diagonal component g_yy
+    gfactor = np.sign(gvec[1]) * np.linalg.norm(gvec)
+    return Ef, H_eff, eigenvalues, gap, gfactor, gvec
 
 
 def main():
@@ -229,9 +237,10 @@ def main():
 
     _, evecs = eigsh(H0_sparse, k=2, sigma=0.00)
     evecs_ortho, _ = qr(evecs, mode="economic")
-    psi_new = np.asarray(
-        psi_new_basis(evecs_ortho[:, 0], evecs_ortho[:, 1], N)
-    ).T
+    # columns (|up>, |down>): needed for the sign of g
+    psi_new = pseudospin_basis_spin_up_first(
+        evecs_ortho[:, 0], evecs_ortho[:, 1], N
+    )
 
     Heff_coeffs, *_ = block_diagonalize(
         H_list_sparse,
@@ -270,13 +279,14 @@ def main():
         ))
 
     # imap preserves the order of efield_list, so the output remains ordered.
-    for Ef, H_eff, eigenvalues, gap, gfactor in results:
+    for Ef, H_eff, eigenvalues, gap, gfactor, gvec in results:
         # print("\nEffective Hamiltonian")
         # print(H_eff.round(8))
         print(
             f"L = {L}, E = {Ef * 1e4:.3f}, "
             # f"ev1 = {eigenvalues[0]:.6f}, ev2 = {eigenvalues[1]:.6f}, "
-            f"gap = {gap * 1e6:.4f}, g = {gfactor:.3f}"
+            f"gap = {gap * 1e6:.4f}, g = {gfactor:.4f}, "
+            f"(g_yx, g_yy, g_yz) = ({gvec[0]:.4f}, {gvec[1]:.4f}, {gvec[2]:.4f})"
         )
 
     # Save columns as: L [Angstrom], gap [micro-eV], E [V/micrometre], g.
@@ -286,15 +296,22 @@ def main():
     )
     output_data = np.asarray([
         [L, gap * 1e6, Ef * 1e4, gfactor]
-        for Ef, _, _, gap, gfactor in results
+        for Ef, _, _, gap, gfactor, _ in results
     ])
     np.savetxt(
         output_filename,
         output_data,
         fmt=["%.8f", "%.10e", "%.10e", "%.10e"],
-        header="L_Angstrom gap_microeV E_V_per_um g",
+        header="L_Angstrom gap_microeV E_V_per_um g_yy(signed)",
     )
     print(f"Saved data to {output_filename}")
+
+    # ---------- numerical (exact diagonalization) g_yy ----------
+    rows = numerical_g_sweep(
+        H0_sparse, V_Ey, V_By, psi_new, efield_list,
+        component="yy", muB=muB, B=B, n_workers=n_workers,
+    )
+    save_numerical(rows, "yy", "y" if flagy == 1 else "z", N, L)
 
     print(f"\nTotal runtime: {time.time() - t0:.2f} s")
 

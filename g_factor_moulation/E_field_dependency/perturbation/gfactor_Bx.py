@@ -15,7 +15,8 @@ from multiprocessing import Pool
 from tqdm import tqdm
 # import time
 
-from Hamiltonian_mathematica_v2 import gso, psi_new_basis
+from Hamiltonian_mathematica_v2 import gso, pseudospin_basis_spin_up_first, g_vector
+from numerical_gfactor import numerical_g_sweep, save_numerical
 np.set_printoptions(linewidth=150)
 
 
@@ -70,10 +71,21 @@ def build_spin_matrix():
 lat = kwant.lattice.square(norbs=Nband)
 
 def make_system_bx(L, Bx):
+    """
+    Orbital Hamiltonian for B = (Bx, 0, 0), gauge A = (0, 0, Bx y).
+
+    Conventions identical to gfactor_By.py / gfactor_Bz.py and to the signed
+    scripts in large_electric_field/:
+      * Kwant element H[site1, site2] uses the block gso(y1 - y2, z1 - z2)
+      * Peierls phase exp(-i e/hbar A.(r1 - r2)) = exp(-i e Bx a^2 y_mid (z1 - z2) / hbar)
+        (same electron-charge sign as kx -> kx + e A_x / hbar used for By, Bz)
+      * y_mid is measured from the wire centre.
+    """
     syst = kwant.Builder()
 
     a = L / (N + 1)
     a_m = a * 1e-10
+    y_center = (Ny - 1) / 2.0
 
     phase_per_tesla = q * a_m**2 / hbar
 
@@ -91,37 +103,25 @@ def make_system_bx(L, Bx):
             syst[lat(y, z)] = gso_cache[(0, 0)]
 
     def hopping(site1, site2):
-        yi, zi = site1.tag
-        yj, zj = site2.tag
+        y1, z1 = site1.tag
+        y2, z2 = site2.tag
 
-        # Keep the same convention for every value of Bx
-        dy = yj - yi
-        dz = zj - zi
+        ry = int(y1 - y2)
+        rz = int(z1 - z2)
 
-        val = gso_cache[(dy, dz)]
+        val = gso_cache[(ry, rz)]
 
-        y_mid = 0.5 * (yi + yj)
+        y_mid_centered = 0.5 * (y1 + y2) - y_center
 
-        phi = (
-            phase_per_tesla
-            * y_mid
-            * dz
-        )
+        phi = phase_per_tesla * y_mid_centered * rz
 
         phase = np.exp(-1j * Bx * phi)
 
         return val * phase
 
-    for dy in [-1, 0, 1]:
-        for dz in [-1, 0, 1]:
-            if dy == 0 and dz == 0:
-                continue
-
-            syst[
-                kwant.builder.HoppingKind(
-                    (dy, dz), lat, lat
-                )
-            ] = hopping
+    # One representative per Hermitian pair (the reverse is added by Kwant).
+    for d in [(1, 0), (0, 1), (1, 1), (1, -1)]:
+        syst[kwant.builder.HoppingKind(d, lat, lat)] = hopping
 
     return syst.finalized()
 
@@ -146,9 +146,6 @@ def make_system_E():
             syst[lat_E(y, z)] = V * np.eye(Nband) 
 
     return syst.finalized()
-
-
-
 
 
 
@@ -189,8 +186,8 @@ def build_effective_hamiltonian_coefficients():
     psi1 = evecs_ortho[:, 0]
     psi2 = evecs_ortho[:, 1]
 
-    psi_new = psi_new_basis(psi1, psi2, N)
-    psi_new = np.array(psi_new).T
+    # columns (|up>, |down>): needed for the sign of g
+    psi_new = pseudospin_basis_spin_up_first(psi1, psi2, N)
 
     Heff_coeffs, *_ = block_diagonalize(H_list_sparse, subspace_eigenvectors=[psi_new])
 
@@ -202,7 +199,10 @@ def build_effective_hamiltonian_coefficients():
     H14 = np.asarray(Heff_coeffs[(0,0,1,4)])
     H16 = np.asarray(Heff_coeffs[(0,0,1,6)])
 
-    return H00, H10, H12, H14, H16
+    # inputs for the exact-diagonalization (numerical) comparison
+    numerical_inputs = (H0_sparse, V_Bx, V_E, psi_new)
+
+    return H00, H10, H12, H14, H16, numerical_inputs
 
 
 def init_worker(H00, H10, H12, H14, H16):
@@ -217,16 +217,20 @@ def init_worker(H00, H10, H12, H14, H16):
 
 
 def calculate_efield(Ef):
-    """Calculate the gap and g factor for one electric-field value."""
-    H_eff = _H00 + _H10 * Bf + _H12 * Bf * Ef**2 + _H14 * Bf * Ef**4+ _H16 * Bf * Ef**6
+    """Calculate the gap and signed g_xx for one electric-field value."""
+    # dH_eff/dBx (eV/T) in the (|up>, |down>) pseudospin basis
+    H_B = _H10 + _H12 * Ef**2 + _H14 * Ef**4 + _H16 * Ef**6
+    H_eff = _H00 + H_B * Bf
     w = eigh(H_eff, eigvals_only=True)
     gap = np.abs(w[1] - w[0])
-    g = gap / (muB * Bf)
-    return [L, gap, Ef, g], w
+    gvec = g_vector(H_B, muB)              # (g_xx, g_xy, g_xz)
+    # |gvec| = gap / (muB Bf); sign taken from the diagonal component g_xx
+    g = np.sign(gvec[0]) * np.linalg.norm(gvec)
+    return [L, gap, Ef, g], w, gvec
 
 
 def main():
-    H00, H10, H12, H14, H16 = build_effective_hamiltonian_coefficients()
+    H00, H10, H12, H14, H16, numerical_inputs = build_effective_hamiltonian_coefficients()
 
     # imap preserves efield_list ordering while yielding completed results so
     # tqdm can update continuously.  Limit workers to the number of tasks.
@@ -244,22 +248,31 @@ def main():
             unit="field",
         ))
 
-    results = [result for result, _ in calculated]
-    for result, w in calculated:
+    results = [result for result, _, _ in calculated]
+    for result, w, gvec in calculated:
         _, _, Ef, g = result
         print(
             f"L = {L}, E = {Ef*1e4:.3f}, ev1 = {w[0]:.6f}, "
-            f"ev2 = {w[1]:.6f}, g = {g:.3f}"
+            f"ev2 = {w[1]:.6f}, g = {g:.4f}, "
+            f"(g_xx, g_xy, g_xz) = ({gvec[0]:.4f}, {gvec[1]:.4f}, {gvec[2]:.4f})"
         )
 
     output_filename = "gx_moulation_Ey.dat" if flagy == 1 else "gx_moulation_Ez.dat"
     np.savetxt(
         output_filename,
         np.asarray(results),
-        header="L gap E g",
+        header="L gap E g_xx(signed)",
         fmt="%.12e",
     )
     print(f"Saved results to {output_filename}")
+
+    # ---------- numerical (exact diagonalization) g_xx ----------
+    H0_sparse, V_Bx, V_E, psi_new = numerical_inputs
+    rows = numerical_g_sweep(
+        H0_sparse, V_E, V_Bx, psi_new, efield_list,
+        component="xx", muB=muB, B=Bf, n_workers=nworkers,
+    )
+    save_numerical(rows, "xx", "y" if flagy == 1 else "z", N, L)
 
 
 if __name__ == "__main__":

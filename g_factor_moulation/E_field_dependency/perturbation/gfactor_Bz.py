@@ -9,7 +9,10 @@ from scipy.sparse import bmat, block_diag, csr_matrix, identity
 from scipy.sparse.linalg import eigsh
 from tqdm.auto import tqdm
 
-from Hamiltonian_mathematica_v2 import psi_new_basis, gs_shifted_bz
+from Hamiltonian_mathematica_v2 import (
+    gs_shifted_bz, pseudospin_basis_spin_up_first, g_vector,
+)
+from numerical_gfactor import numerical_g_sweep, save_numerical
 
 
 # ---------------------------------
@@ -121,18 +124,21 @@ def init_gfactor_worker(H00, H10, H12, H14, H16, magnetic_field, bohr_magneton):
 
 
 def calculate_gfactor(Ef):
-    """Calculate the Bz splitting and g-factor at one electric field."""
-    H_eff = (
-        _worker_H00
-        + _worker_H10 * _worker_B
-        + _worker_H12 * _worker_B * Ef**2
-        + _worker_H14 * _worker_B * Ef**4
-        + _worker_H16 * _worker_B * Ef**6
+    """Calculate the Bz splitting and signed g_zz at one electric field."""
+    # dH_eff/dBz (eV/T) in the (|up>, |down>) pseudospin basis
+    H_B = (
+        _worker_H10
+        + _worker_H12 * Ef**2
+        + _worker_H14 * Ef**4
+        + _worker_H16 * Ef**6
     )
+    H_eff = _worker_H00 + H_B * _worker_B
     eigenvalues = eigh(H_eff, eigvals_only=True)
     gap = np.abs(eigenvalues[1] - eigenvalues[0])
-    gfactor = gap / (_worker_muB * _worker_B)
-    return Ef, eigenvalues, gap, gfactor
+    gvec = g_vector(H_B, _worker_muB)        # (g_zx, g_zy, g_zz)
+    # |gvec| = gap / (muB B); sign taken from the diagonal component g_zz
+    gfactor = np.sign(gvec[2]) * np.linalg.norm(gvec)
+    return Ef, eigenvalues, gap, gfactor, gvec
 
 
 def build_spin_matrix():
@@ -189,11 +195,12 @@ def run_direction(flagy, H0_sparse, V_Bz, psi_new,efield_list):
         )
 
     # Pool.imap preserves the order of efield_list.
-    for Ef, eigenvalues, gap, gfactor in results:
+    for Ef, eigenvalues, gap, gfactor, gvec in results:
         print(
             f"L = {L}, E = {Ef * 1e4:.3f}, "
             # f"ev1 = {eigenvalues[0]:.6f}, ev2 = {eigenvalues[1]:.6f}, "
-            f"gap = {gap * 1e6:.4f}, g = {gfactor:.3f}"
+            f"gap = {gap * 1e6:.4f}, g = {gfactor:.4f}, "
+            f"(g_zx, g_zy, g_zz) = ({gvec[0]:.4f}, {gvec[1]:.4f}, {gvec[2]:.4f})"
         )
 
     # Columns: L [Angstrom], gap [micro-eV], E [V/micrometre], g.
@@ -201,16 +208,23 @@ def run_direction(flagy, H0_sparse, V_Bz, psi_new,efield_list):
     output_data = np.asarray(
         [
             [L, gap * 1e6, Ef * 1e4, gfactor]
-            for Ef, _, gap, gfactor in results
+            for Ef, _, gap, gfactor, _ in results
         ]
     )
     np.savetxt(
         output_filename,
         output_data,
         fmt=["%.8f", "%.10e", "%.10e", "%.10e"],
-        header="L_Angstrom gap_microeV E_V_per_um g",
+        header="L_Angstrom gap_microeV E_V_per_um g_zz(signed)",
     )
     print(f"Saved data to {output_filename}")
+
+    # ---------- numerical (exact diagonalization) g_zz ----------
+    rows = numerical_g_sweep(
+        H0_sparse, V_E, V_Bz, psi_new, efield_list,
+        component="zz", muB=muB, B=B, n_workers=n_workers,
+    )
+    save_numerical(rows, "zz", direction[-1], N, L)
 
 
 def main():
@@ -228,9 +242,10 @@ def main():
     H0_sparse = make_system_bz(0.0, 0.0).hamiltonian_submatrix(sparse=True)
     _, evecs = eigsh(H0_sparse, k=2, sigma=0.00)
     evecs_ortho, _ = qr(evecs, mode="economic")
-    psi_new = np.asarray(
-        psi_new_basis(evecs_ortho[:, 0], evecs_ortho[:, 1], N)
-    ).T
+    # columns (|up>, |down>): needed for the sign of g
+    psi_new = pseudospin_basis_spin_up_first(
+        evecs_ortho[:, 0], evecs_ortho[:, 1], N
+    )
 
     for flagy in flag:
         if flagy == 1:

@@ -235,4 +235,38 @@ def psi_new_basis(p1, p2, N):
     return p1_new, p2_new
 
 
+#-----------------------------------------------
+# signed g factor
+#-----------------------------------------------
+
+PAULI = (
+    np.array([[0, 1], [1, 0]], dtype=complex),
+    np.array([[0, -1j], [1j, 0]], dtype=complex),
+    np.array([[1, 0], [0, -1]], dtype=complex),
+)
+
+
+def pseudospin_basis_spin_up_first(p1, p2, N):
+    """
+    Kramers pair as columns (|up>, |down>) for the signed g factor.
+
+    psi_new_basis returns the pair with S_z diagonal and <1|S_x|2> real > 0,
+    but eigh sorts ascending, so its first vector has the SMALLER <S_z>.
+    Swapping gives |up> = larger <S_z>; <up|S_x|down> stays real > 0.
+    This is the same convention as the signed scripts in large_electric_field/
+    (g_xx < 0, g_yy > 0, g_zz < 0 at E = 0).
+    """
+    p_low, p_high = psi_new_basis(p1, p2, N)
+    return np.column_stack((p_high, p_low))
+
+
+def g_vector(H_B, muB):
+    """
+    H_B = dH_eff/dB (2x2, eV/T) in the (|up>, |down>) basis.
+    H_B = (muB/2) sum_beta g_beta sigma_beta  ->  g_beta = Tr(H_B sigma_beta) / muB.
+    Returns (g_ax, g_ay, g_az) for B along alpha; |g_vector| = splitting/(muB B).
+    """
+    return np.array([np.trace(H_B @ s).real / muB for s in PAULI])
+
+
 

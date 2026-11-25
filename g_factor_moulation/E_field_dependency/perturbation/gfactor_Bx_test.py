@@ -15,7 +15,7 @@ from multiprocessing import Pool
 from tqdm import tqdm
 # import time
 
-from Hamiltonian_mathematica_v2 import gso, psi_new_basis
+from Hamiltonian_mathematica_v2 import gso, pseudospin_basis_spin_up_first, g_vector
 np.set_printoptions(linewidth=150)
 
 
@@ -64,10 +64,21 @@ def build_spin_matrix():
 lat = kwant.lattice.square(norbs=Nband)
 
 def make_system_bx(L, Bx):
+    """
+    Orbital Hamiltonian for B = (Bx, 0, 0), gauge A = (0, 0, Bx y).
+
+    Conventions identical to gfactor_By.py / gfactor_Bz.py and to the signed
+    scripts in large_electric_field/:
+      * Kwant element H[site1, site2] uses the block gso(y1 - y2, z1 - z2)
+      * Peierls phase exp(-i e/hbar A.(r1 - r2)) = exp(-i e Bx a^2 y_mid (z1 - z2) / hbar)
+        (same electron-charge sign as kx -> kx + e A_x / hbar used for By, Bz)
+      * y_mid is measured from the wire centre.
+    """
     syst = kwant.Builder()
 
     a = L / (N + 1)
     a_m = a * 1e-10
+    y_center = (Ny - 1) / 2.0
 
     phase_per_tesla = q * a_m**2 / hbar
 
@@ -85,37 +96,25 @@ def make_system_bx(L, Bx):
             syst[lat(y, z)] = gso_cache[(0, 0)]
 
     def hopping(site1, site2):
-        yi, zi = site1.tag
-        yj, zj = site2.tag
+        y1, z1 = site1.tag
+        y2, z2 = site2.tag
 
-        # Keep the same convention for every value of Bx
-        dy = yj - yi
-        dz = zj - zi
+        ry = int(y1 - y2)
+        rz = int(z1 - z2)
 
-        val = gso_cache[(dy, dz)]
+        val = gso_cache[(ry, rz)]
 
-        y_mid = 0.5 * (yi + yj)
+        y_mid_centered = 0.5 * (y1 + y2) - y_center
 
-        phi = (
-            phase_per_tesla
-            * y_mid
-            * dz
-        )
+        phi = phase_per_tesla * y_mid_centered * rz
 
         phase = np.exp(-1j * Bx * phi)
 
         return val * phase
 
-    for dy in [-1, 0, 1]:
-        for dz in [-1, 0, 1]:
-            if dy == 0 and dz == 0:
-                continue
-
-            syst[
-                kwant.builder.HoppingKind(
-                    (dy, dz), lat, lat
-                )
-            ] = hopping
+    # One representative per Hermitian pair (the reverse is added by Kwant).
+    for d in [(1, 0), (0, 1), (1, 1), (1, -1)]:
+        syst[kwant.builder.HoppingKind(d, lat, lat)] = hopping
 
     return syst.finalized()
 
@@ -183,8 +182,7 @@ def build_effective_hamiltonian_coefficients():
     psi1 = evecs_ortho[:, 0]
     psi2 = evecs_ortho[:, 1]
 
-    psi_new = psi_new_basis(psi1, psi2, N)
-    psi_new = np.array(psi_new).T
+    psi_new = pseudospin_basis_spin_up_first(psi1, psi2, N)
 
     Heff_coeffs, *_ = block_diagonalize(H_list_sparse, subspace_eigenvectors=[psi_new])
 
@@ -212,9 +210,6 @@ print(g.round(6))
 
 print(correction.round(8))
 
-w = eigh(correction*Bf, eigvals_only=True)
-gap = np.abs(w[1] - w[0])
-g = gap / (muB * Bf)
-
-print(g.round(6))
+gvec = g_vector(correction, muB)
+print("(g_xx, g_xy, g_xz) =", gvec.round(6))
 

@@ -50,8 +50,9 @@ max_B_iterations = 8
 fZ_tolerance_GHz = 1e-6
 B_max_T       = 10.0            # points needing a larger field are stored as NaN
 E_dc_Vum      = 6.0
-# dc-field direction: angle theta_E (deg) in the y-z plane, measured from +y toward +z
-#   0 -> E_y^dc, 90 -> E_z^dc; one map is computed per entry
+# dc-field direction: angle theta_E (deg) in the y-z plane, measured from +z toward +y
+#   0 -> E_z^dc, 90 -> E_y^dc (same convention as M_matrix/export_M*.py and
+#   R_matrix/rashba_with_E_pymablock_kwant.py); one map is computed per entry
 E_dc_thetas   = (0.0, 90.0, 83.2)
 E_dc_theta    = E_dc_thetas[0]  # set by the loop in __main__
 DATA_DIR      = "import_data"
@@ -223,7 +224,7 @@ def main():
     ])
     dat_name = fname.replace(".npz", ".dat")
     header = (
-        f"EDSR sphere map: E^dc = {E_dc_Vum} V/um at theta_E = {E_dc_theta:.2f} deg (from y), f_Z = {target_fZ_GHz} GHz, "
+        f"EDSR sphere map: E^dc = {E_dc_Vum} V/um at theta_E = {E_dc_theta:.2f} deg (from z), f_Z = {target_fZ_GHz} GHz, "
         f"E_ac = {E_ac_Vum} V/um, f_orb = {f_orb_GHz} GHz, N = {N}, L = {L}, "
         f"l0 = {model['l0_A']/10:.4f} nm, l_so = {model['l_so_A']/10:.4f} nm, B_max = {B_max_T} T\n"
         f"grid: {len(theta)} theta x {len(phi_full)} phi (NaN = needs B > B_max)\n"

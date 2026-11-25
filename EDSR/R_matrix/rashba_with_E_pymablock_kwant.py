@@ -28,7 +28,7 @@ E_V_um = 6.0              # electric-field magnitude in V/um
 Ef = E_V_um * 1e-4        # V/A
 sigma_val = 0.1
 
-# Field direction in the y-z plane: angle theta measured from +y toward +z.
+# Field direction in the y-z plane: angle theta measured from +z toward +y.
 #   theta = 0   -> E along z
 #   theta = 90  -> E along y
 # Add any extra angles you want to explore (degrees).
@@ -41,7 +41,7 @@ lat = kwant.lattice.square(norbs=Nband)
 # Build system main Hamiltonian
 # ---------------------------------
 def make_system(kx, Ef, theta):
-    """theta in radians; E = Ef * (cos(theta) y_hat + sin(theta) z_hat)."""
+    """theta in radians; E = Ef * (sin(theta) y_hat + cos(theta) z_hat)."""
 
     syst = kwant.Builder()
     a = L / (Ny + 1)
@@ -119,7 +119,7 @@ if __name__ == "__main__":
 
     for theta_deg in THETAS_DEG:
         theta = np.deg2rad(theta_deg)
-        print(f"\nPymablock, E at theta = {theta_deg:.2f} deg from y, "
+        print(f"\nPymablock, E at theta = {theta_deg:.2f} deg from z, "
               f"E = {E_V_um} V/um, N = {N}, L = {L}")
 
         H11 = compute_H11(Ef, theta, V_kx)

@@ -164,12 +164,14 @@ def calculate(args):
     # eigsh (ARPACK, complex Hermitian) does NOT return an orthonormal basis
     # inside a degenerate Kramers pair -> orthonormalize the pair explicitly.
     P, _ = np.linalg.qr(v[:, pair])
+
+    # M_ij = <i| dH/dB_x |j>,  2x2
     DP = np.column_stack([
         DHX_WORKER @ P[:, j] + gspin * muB * apply_spin_operator(P[:, j], SX)
         for j in range(2)
     ])
     M = P.conj().T @ DP
-    M = 0.5 * (M + M.conj().T)                       # 2x2, eV/T
+    M = 0.5 * (M + M.conj().T)     # remove numerical non-Hermiticity                  # 2x2, eV/T
 
     return Ef, P, M, E_pair.mean(), gap_next, time.time() - t0
 
@@ -197,7 +199,7 @@ def run(direction):
     # psi_new_basis (S_z diagonal in the pair, <1|S_x|2> > 0), then column 0 = LARGER <S_z>
     # (pseudospin up ~ spin up). In this convention, at E = 0: g_xx < 0, g_yy > 0, g_zz < 0.
     _, P0, M0 = res[0][:3]
-    p1, p2 = psi_new_basis(P0[:, 0], P0[:, 1], None)
+    p1, p2 = psi_new_basis(P0[:, 0], P0[:, 1])
     U = P0.conj().T @ np.column_stack((p2, p1))      # spin-up first
     sign = float(np.sign(pauli_vector(U.conj().T @ M0 @ U)[0]))
 

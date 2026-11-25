@@ -131,7 +131,7 @@ def apply_spin_operator(psi, s):
     return out.reshape(-1)
 
 
-def psi_new_basis(p1, p2, N):
+def psi_new_basis(p1, p2):
 
     sx, sy, sz = spin_matrix_small()
 

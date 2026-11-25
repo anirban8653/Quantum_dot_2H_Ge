@@ -189,7 +189,7 @@ def run(direction):
     # psi_new_basis (S_z diagonal in the pair, <1|S_x|2> > 0), then column 0 = LARGER <S_z>
     # (pseudospin up ~ spin up). In this convention, at E = 0: g_xx < 0, g_yy > 0, g_zz < 0.
     _, P0, M0 = res[0][:3]
-    p1, p2 = psi_new_basis(P0[:, 0], P0[:, 1], None)
+    p1, p2 = psi_new_basis(P0[:, 0], P0[:, 1])
     U = P0.conj().T @ np.column_stack((p2, p1))      # spin-up first
     sign = float(np.sign(pauli_vector(U.conj().T @ M0 @ U)[1]))
 

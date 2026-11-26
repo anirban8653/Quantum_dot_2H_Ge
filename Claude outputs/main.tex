@@ -44,7 +44,7 @@
 % \renewcommand{\todo}[1]{}
 \newcommand{\Eac}{\mathcal{E}^{\rm ac}_x}
 \newcommand{\Edc}{\mathcal{E}^{\rm dc}}
-\newcommand{\ldot}{l_{\rm dot}}
+\newcommand{\ldot}{\ell_{\rm dot}}
 \newcommand{\lso}{\ell_{\rm SO}}
 \newcommand{\nhat}{\hat{\mathbf n}}
 \newcommand{\shat}{\hat{\mathbf s}}
@@ -74,14 +74,38 @@ $^{1,2}$}
 
 
 %======================================================================
-\section{Model}
+\section{Electric-field tuning of the $g$ tensor of the nanowire}
+\label{sec:electric_g_tensor}
+%======================================================================
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\linewidth]{gfactor_modulation_N100_L300_g.pdf}
+\caption{Electric-field dependence of the diagonal $g$ factors (a) $g_{xx}$, (b) $g_{yy}$, and (c) $g_{zz}$ of the top valence subband for a static field along $y$ (red circles) and $z$ (blue squares). Symbols are numerical results; dotted lines are guides to the eye. Dashed lines mark $g=0$. $L=30$~nm.}
+    \label{fig:g_modulation}
+\end{figure}
+
+The static field that generates the Rashba interaction also modifies the $g$ tensor of the qubit. To quantify this effect, we apply a field $\mathcal{E}_j$ along $j\in\{y,z\}$ and extract $g_{ii}$ from the weak-field Zeeman splitting of vb$_0$ at $k_x=0$, as defined in Eq.~(9) of Ref.~\cite{das2026anisotropic}. We characterize the change by
+\begin{equation}
+\Delta g_{ii} = 100 \times \frac{g_{ii}(\mathcal{E}_j) - g_{ii}(0)}{g_{ii}(0)},
+\label{eq:delg}
+\end{equation}
+where $i\in\{x,y,z\}$.
+
+Figure~\ref{fig:g_modulation} shows the diagonal $g$ factors over the full field range $0\le\mathcal{E}\le7$~V/$\mu$m. The response depends strongly on the field direction. For $\mathcal{E}\parallel y$, the small transverse components grow substantially: $|g_{xx}|$ increases from $0.049$ to a maximum of $\approx0.29$ near $3.9$~V/$\mu$m and then decreases to $0.12$, while $g_{yy}$ increases monotonically from $0.44$ to $3.7$. The large component $|g_{zz}|$ first increases slightly, reaching $\approx16.2$ near $2.5$~V/$\mu$m, and then decreases to $\approx12.5$. For $\mathcal{E}\parallel z$, $|g_{zz}|$ decreases to $10.8$, while both small components change sign: $g_{xx}$ crosses zero near $\mathcal{E}_z\approx0.24$~V/$\mu$m and saturates at $|g_{xx}|\approx0.13$, and $g_{yy}$ crosses zero near $\mathcal{E}_z\approx1.67$~V/$\mu$m and reaches $|g_{yy}|\approx0.41$ at the largest field. Consequently, the strong anisotropy $|g_{xx}|,|g_{yy}|\ll|g_{zz}|$ is reduced at strong fields along $y$: the ratio $|g_{yy}/g_{zz}|$ increases from about $1/35$ at zero field to about $1/3$ at $7$~V/$\mu$m. As shown in Sec.~\ref{sec:rabi_modulation}, this ratio determines the angular width of the EDSR response.
+
+In the weak-field regime, $\mathcal{E}_y\le1$~V/$\mu$m and $\mathcal{E}_z\le0.075$~V/$\mu$m (Appendix~\ref{app:perturbation}), the magnitudes of $g_{xx}$ and $g_{yy}$ increase by $\approx140\%$ and $\approx43\%$ for $\mathcal{E}\parallel y$ and decrease by $\approx16\%$ and $\approx2.5\%$ for $\mathcal{E}\parallel z$, while $|g_{zz}|$ changes by about 1\% or less. Because $g_{xx}$ and $g_{yy}$ are small, the corresponding absolute changes remain below $0.2$. In the EDSR calculations below, we keep the qubit frequency fixed. Any change of the $g$ tensor is then compensated by the magnitude of $\mathbf{B}$. The $g$-tensor modulation therefore influences the Rabi frequency only through the orientation of the quantization axis, and not through the Zeeman energy.
+
+The dependence of $g_{ii}$ on the field contains only even powers of $\mathcal{E}$. In the weak-field regime, a Schrieffer-Wolff expansion up to sixth order in $\mathcal{E}$ reproduces the numerical results; the derivation and the comparison are given in Appendix~\ref{app:perturbation}.
+%======================================================================
+\section{Modeling of the quantum dot}
 \label{sec:model}
 %======================================================================
 
 \subsection{Nanowire and effective Hamiltonian of the top valence subband}
 \label{sec:pseudospin}
 
-We consider the 2H-Ge nanowire studied in Ref.~\cite{das2026anisotropic} and use the same ten-band $\mathbf{k}\cdot\mathbf{p}$ Hamiltonian, discretized on a real-space lattice in the transverse plane. The nanowire axis is along $x\parallel[10\bar{1}0]$, the crystal $c$ axis is along $z$, and the cross section is a square of side length $L$ in the $y$--$z$ plane. Unless stated otherwise, $L=30$~nm. Static electric fields $\boldsymbol{\mathcal{E}}$ transverse to the wire are included nonperturbatively through the on-site potential $e\boldsymbol{\mathcal{E}}\cdot\mathbf{r}$. Magnetic fields enter through Peierls phases (Appendix~\ref{app:peierls}) and the spin Zeeman term. We restrict the electric-field strength to $\mathcal{E}\le7$~V/$\mu$m, for which the fundamental gap of the nanowire remains open~\cite{das2026anisotropic}.
+We consider the 2H-Ge nanowire studied in Ref.~\cite{das2026anisotropic} and use the same ten-band $\mathbf{k}\cdot\mathbf{p}$ Hamiltonian, discretized on a real-space lattice in the transverse plane. The nanowire axis is along $x\parallel[10\bar{1}0]$, the crystal $c$ axis is along $z$, and the cross section is a square of side length $L$ in the $y$--$z$ plane. Unless stated otherwise, $L=30$~nm. Static electric fields $\boldsymbol{\mathcal{E}}$ transverse to the wire are included nonperturbatively through the on-site potential $e\boldsymbol{\mathcal{E}}\cdot\mathbf{r}$. Magnetic fields enter through Peierls phases and the spin Zeeman term. We restrict the electric-field strength to $\mathcal{E}\le7$~V/$\mu$m, for which the fundamental gap of the nanowire remains open~\cite{das2026anisotropic}.
 
 The qubit is encoded in the Kramers pair $\{\ket{v_\uparrow},\ket{v_\downarrow}\}$ of the top valence subband vb$_0$. We fix the basis as in Ref.~\cite{das2026anisotropic}: the two partners are eigenstates of the twofold rotation $C_{2z}$, and their relative phase is fixed by the mirror $M_x$ with normal along $x$. In this basis, the restrictions of the two operators are $C_{2z}\to-i\sigma_z$ (up to a phase) and $M_x\to-i\sigma_x$. To first order in the magnetic field and in the longitudinal momentum $k_x$, the effective Hamiltonian of vb$_0$ reads
 \begin{align}
@@ -99,7 +123,8 @@ E_v-A_h k_x^2
 \end{align}
 where $E_v$ is the band-edge energy, $A_h=\hbar^2/2|m_x^*|$ with the longitudinal effective mass $|m_x^*|=0.0737\,m_0$ for $L=30$~nm, $g_{ii}$ are the signed diagonal $g$ factors, and $\alpha_R^{(\eta)}$ is the Rashba coefficient induced by a field along $\eta\in\{y,z\}$.
 
-The form of Eq.~\eqref{eq:Hpseudo} follows from symmetry. The magnetic field $\mathbf{B}$ is a pseudovector, whereas $\boldsymbol{\mathcal{E}}$ and $\mathbf{k}$ are polar vectors, so they transform differently under $M_x$. Table~\ref{tab:symmetry} lists the characters of the relevant operators under $C_{2z}$ and $M_x$. Time-reversal symmetry excludes terms proportional to the identity, and each remaining operator must therefore couple to the single Pauli matrix with the same pair of characters. This gives $B_x\to\sigma_x$, $B_y\to\sigma_y$, $B_z\to\sigma_z$, $k_x\mathcal{E}_y\to\sigma_z$, and $k_x\mathcal{E}_z\to\sigma_y$. The last two assignments agree with the selection rules derived in Ref.~\cite{das2026anisotropic}. A field along $z$ preserves both $C_{2z}$ and $M_x$. A field along $y$ breaks $C_{2z}$ but preserves $M_x$ and the horizontal mirror $M_z$. In both cases the $g$ tensor therefore remains diagonal. For a field tilted in the $y$--$z$ plane, only $M_x$ survives, and an off-diagonal component $g_{yz}$ is allowed. We have verified numerically that the projected Zeeman matrices $P^\dagger(\partial H/\partial B_\alpha)P$ are proportional to $\sigma_\alpha$ for $\mathcal{E}=0$, $\mathcal{E}\parallel y$, and $\mathcal{E}\parallel z$ (admixture of the other Pauli matrices below $10^{-12}$), and that $\mathcal{E}\parallel y$ ($\mathcal{E}\parallel z$) produces a Rashba term $\propto\sigma_z$ ($\sigma_y$). The signs of the individual $g_{ii}$ depend on the pseudospin convention: interchanging the two Kramers partners, $P\to P\sigma_x$, is a $\pi$ rotation about $x$ that reverses $g_{yy}$, $g_{zz}$, $\alpha_R^{(z)}$, and $\alpha_R^{(y)}$, while $g_{xx}$ and $\det g$ are unchanged. Choosing the partner with the larger $\langle S_z\rangle$ as $\ket{v_\uparrow}$, we find the sign pattern $(g_{xx},g_{yy},g_{zz})=(-,+,-)$ for $\mathcal{E}=0$ and $\mathcal{E}\parallel y$, and $(+,-,-)$ for $\mathcal{E}\parallel z$, with $\det g>0$ in all three cases. The convention-independent spin-orbit field $\mathbf{B}_{\rm SO}\propto g^{-T}\boldsymbol{\alpha}_R$ points along $+z$ for $\mathcal{E}\parallel +y$ and along $-y$ for $\mathcal{E}\parallel +z$.
+The form of Eq.~\eqref{eq:Hpseudo} follows from symmetry. The magnetic field $\mathbf{B}$ is a pseudovector, whereas $\boldsymbol{\mathcal{E}}$ and $\mathbf{k}$ are polar vectors, so they transform differently under $M_x$. Table~\ref{tab:symmetry} lists the characters of the relevant operators under $C_{2z}$ and $M_x$. Time-reversal symmetry excludes terms proportional to the identity, and each remaining operator must therefore couple to the single Pauli matrix with the same pair of characters. This gives $B_x\to\sigma_x$, $B_y\to\sigma_y$, $B_z\to\sigma_z$, $k_x\mathcal{E}_y\to\sigma_z$, and $k_x\mathcal{E}_z\to\sigma_y$. The last two assignments agree with the selection rules derived in Ref.~\cite{das2026anisotropic}. A field along $z$ preserves both $C_{2z}$ and $M_x$. A field along $y$ breaks $C_{2z}$ but preserves $M_x$ and the horizontal mirror $M_z$. In both cases the $g$ tensor therefore remains diagonal. For a field tilted in the $y$--$z$ plane, only $M_x$ survives, and an off-diagonal component $g_{yz}$ is allowed. 
+
 
 \begin{table}[t]
 \caption{Characters under $C_{2z}$ and $M_x$ of the operators entering Eq.~\eqref{eq:Hpseudo}, and the Pauli matrix with the same characters.}
@@ -121,7 +146,7 @@ $k_x\mathcal{E}_z$ & $-$ & $-$ & $\sigma_y$\\
 Equation~\eqref{eq:Hpseudo} defines two directions in pseudospin space: the Zeeman vector $\mathbf{b}=\tfrac12\mu_B(g_{xx}B_x,g_{yy}B_y,g_{zz}B_z)$, which sets the qubit quantization axis, and the spin-orbit axis $\shat=\bm{\alpha}_R/|\bm{\alpha}_R|$. For $\Edc\parallel y$, $\shat=\hat z$; for $\Edc\parallel z$, $\shat=\hat y$. As shown in Sec.~\ref{sec:rabi_modulation}, the angle between these two vectors controls the EDSR response.
 
 At $\mathcal{E}=0$ and $L=30$~nm, the $g$ factors are $|g_{xx}|\simeq0.049$, $|g_{yy}|\simeq0.44$, and $|g_{zz}|\simeq15.8$~\cite{das2026anisotropic}.
-\todo{Ref.~\cite{das2026anisotropic} currently points to the arXiv version (which still has $|g_{xx}|\simeq0.29$); replace with the published version, where $g_{xx}$ is corrected.} For weak fields, $\alpha_R^{(\eta)}\simeq\alpha_R'^{(\eta)}\mathcal{E}_\eta$ with $\alpha_R'^{(y)}\simeq3.48\,e\,{\rm nm}^2$ and $\alpha_R'^{(z)}\simeq0.81\,e\,{\rm nm}^2$~\cite{das2026anisotropic}. At stronger fields, $\alpha_R$ is a nonlinear function of $\mathcal{E}$ and is obtained from the term linear in $k_x$, $H_{10}(\boldsymbol{\mathcal{E}})$, of the finite-field effective Hamiltonian [Eq.~(16) of Ref.~\cite{das2026anisotropic}]. We characterize the strength of the spin-orbit interaction by the spin-orbit length $\lso=\hbar^2/(|m_x^*|\,|\alpha_R|)$.
+ For weak fields, $\alpha_R^{(\eta)}\simeq\alpha_R'^{(\eta)}\mathcal{E}_\eta$ with $\alpha_R'^{(y)}\simeq3.48\,e\,{\rm nm}^2$ and $\alpha_R'^{(z)}\simeq0.81\,e\,{\rm nm}^2$~\cite{das2026anisotropic}. At stronger fields, $\alpha_R$ is a nonlinear function of the applied electric field, $\Edc$ ~\cite{das2026anisotropic}. We characterize the strength of the spin-orbit interaction by the spin-orbit length $\lso=\hbar^2/(|m_x^*|\,|\alpha_R|)$.
 
 
 \subsection{Quantum-dot model}
@@ -129,8 +154,8 @@ At $\mathcal{E}=0$ and $L=30$~nm, the $g$ factors are $|g_{xx}|\simeq0.049$, $|g
 
 \begin{figure}[t]
     \centering
-    \includegraphics[width=\columnwidth]{quantum_dot_model_v2.pdf}
-    \caption{(a) Schematic of the EDSR setup for a gate-defined quantum dot in a 2H-Ge nanowire. The orange gates define the tunnel barriers, and the black parabola is the longitudinal confinement potential with length scale $\ldot$. $\boldsymbol{\mathcal{E}}_{\rm dc}$ and $\boldsymbol{\mathcal{E}}_{\rm ac}$ are the static and oscillating electric fields, and $\mathbf{B}$ (red) is the magnetic field with polar angle $\theta$ and azimuthal angle $\phi$. (b) The two highest orbital levels of the dot, each Zeeman split by $E_Z$. The orbital level spacing is $\Delta=\hbar\omega_0\gg E_Z$.}
+    \includegraphics[width=\columnwidth]{quantum_dot_model_v3.pdf}
+    \caption{(a) Schematic of the EDSR setup for a gate-defined quantum dot in a 2H-Ge nanowire. The orange gates define the tunnel barriers, and the blue cloud is the ground-state hole density $|\psi_0(x)|^2\propto e^{-x^2/\ldot^2}$; the arrow marks its full $1/e$ width, $2\ldot$. $\boldsymbol{\mathcal{E}}_{\rm dc}$ and $\boldsymbol{\mathcal{E}}_{\rm ac}$ are the static and oscillating electric fields, and $\mathbf{B}$ (red) is the magnetic field with polar angle $\theta$ and azimuthal angle $\phi$. (b) Harmonic confinement potential along the wire (grey) and the two highest orbital levels of the dot, each Zeeman split by $E_Z$. The shaded curve is $|\psi_0(x)|^2$, whose $1/e$ points coincide with the classical turning points $x=\pm\ldot$ of the ground state. The orbital level spacing is $\Delta=\hbar\omega_0\gg E_Z$.}
     \label{fig:EDSR_setup}
 \end{figure}
 
@@ -179,16 +204,18 @@ The static electric field induces the spin-orbit term
 \begin{align}
 H_{\rm SO}
 =
-k_x
-\otimes
-H_{10}(\Edc)
-\;\xrightarrow{\ \text{weak field}\ }\;
-\mathcal{E}_{\eta}^{\rm dc}\,k_x\otimes R_{\eta},
+k_x\otimes\bm{\alpha}_R(\Edc)\cdot\bm{\sigma}
+=
+k_x\otimes\Big[\alpha_R^{(z)}(\Edc)\,\sigma_y+\alpha_R^{(y)}(\Edc)\,\sigma_z\Big],
 \label{eq:HSOdot}
 \end{align}
-where $R_\eta=H_{110}^{(\eta)}$ is the field-normalized Rashba matrix of Ref.~\cite{das2026anisotropic} and $\eta=y,z$. The eigenvalues of $H_{10}(\Edc)$ are $\pm\alpha_R(\Edc)$.
-For the strong-field maps of Fig.~\ref{fig:sphere_map} we use the finite-field form, $H_{10}(\Edc)$ evaluated at $|\Edc|=6$~V/$\mu$m. Throughout, $A_h$ is taken at $\Edc=0$.
-\todo{State the form used for the weak-field results of Appendix~\ref{app:weak_field_polar} once they are regenerated.}
+i.e., the last term of Eq.~\eqref{eq:Hpseudo}. Because $M_x$ forbids a $k_x\sigma_x$ term for any static field in the $y$--$z$ plane, this form holds at all field strengths, and the Rashba parameter is $\alpha_R=|\bm{\alpha}_R(\Edc)|$. For weak fields,
+\begin{align}
+H_{\rm SO}\simeq k_x\otimes\Big(\alpha_R'^{(z)}\mathcal{E}^{\rm dc}_z\,\sigma_y+\alpha_R'^{(y)}\mathcal{E}^{\rm dc}_y\,\sigma_z\Big).
+\label{eq:HSOweak}
+\end{align}
+At stronger fields both components depend nonlinearly on $\mathcal{E}^{\rm dc}_y$ and $\mathcal{E}^{\rm dc}_z$. For the maps of Fig.~\ref{fig:sphere_map} we evaluate $\bm{\alpha}_R$ nonperturbatively at $|\Edc|=6$~V/$\mu$m, and for the weak-field results of Appendix~\ref{app:weak_field_polar} we use Eq.~\eqref{eq:HSOweak}. Throughout, $A_h$ is taken at $\Edc=0$.
+\todo{Confirm that the regenerated weak-field data of Appendix~\ref{app:weak_field_polar} use Eq.~\eqref{eq:HSOweak}.}
 
 The full static Hamiltonian of the dot is
 \begin{align}
@@ -256,30 +283,6 @@ f_R
 Here $f_R$ is the frequency of full spin-flip oscillations within the rotating-wave approximation. Since the dipole operator $x$ acts trivially on the pseudospin, $f_R$ vanishes in the absence of spin-orbit interaction. The static electric field switches on the spin-orbit interaction, while the magnetic field sets the qubit quantization axis.
 
 
-%======================================================================
-\section{Electric-field tuning of the $g$ tensor}
-\label{sec:electric_g_tensor}
-%======================================================================
-
-\begin{figure}[t]
-    \centering
-    \includegraphics[width=\linewidth]{gfactor_modulation_N100_L300_g.pdf}
-\caption{Electric-field dependence of the diagonal $g$ factors (a) $g_{xx}$, (b) $g_{yy}$, and (c) $g_{zz}$ of the top valence subband for a static field along $y$ (red circles) and $z$ (blue squares). Symbols are numerical results; dotted lines are guides to the eye. Dashed lines mark $g=0$. $L=30$~nm.}
-    \label{fig:g_modulation}
-\end{figure}
-
-The static field that generates the Rashba interaction also modifies the $g$ tensor of the qubit. To quantify this effect, we apply a field $\mathcal{E}_j$ along $j\in\{y,z\}$ and extract $g_{ii}$ from the weak-field Zeeman splitting of vb$_0$ at $k_x=0$, as defined in Eq.~(9) of Ref.~\cite{das2026anisotropic}. We characterize the change by
-\begin{equation}
-\Delta g_{ii} = 100 \times \frac{g_{ii}(\mathcal{E}_j) - g_{ii}(0)}{g_{ii}(0)},
-\label{eq:delg}
-\end{equation}
-where $i\in\{x,y,z\}$.
-
-Figure~\ref{fig:g_modulation} shows the diagonal $g$ factors over the full field range $0\le\mathcal{E}\le7$~V/$\mu$m. The response depends strongly on the field direction. For $\mathcal{E}\parallel y$, the small transverse components grow substantially: $|g_{xx}|$ increases from $0.049$ to a maximum of $\approx0.29$ near $3.9$~V/$\mu$m and then decreases to $0.12$, while $g_{yy}$ increases monotonically from $0.44$ to $3.7$. The large component $|g_{zz}|$ first increases slightly, reaching $\approx16.2$ near $2.5$~V/$\mu$m, and then decreases to $\approx12.5$. For $\mathcal{E}\parallel z$, $|g_{zz}|$ decreases to $10.8$, while both small components change sign: $g_{xx}$ crosses zero near $\mathcal{E}_z\approx0.24$~V/$\mu$m and saturates at $|g_{xx}|\approx0.13$, and $g_{yy}$ crosses zero near $\mathcal{E}_z\approx1.67$~V/$\mu$m and reaches $|g_{yy}|\approx0.41$ at the largest field. Consequently, the strong anisotropy $|g_{xx}|,|g_{yy}|\ll|g_{zz}|$ is reduced at strong fields along $y$: the ratio $|g_{yy}/g_{zz}|$ increases from about $1/35$ at zero field to about $1/3$ at $7$~V/$\mu$m. As shown in Sec.~\ref{sec:rabi_modulation}, this ratio determines the angular width of the EDSR response.
-
-In the weak-field regime, $\mathcal{E}_y\le1$~V/$\mu$m and $\mathcal{E}_z\le0.075$~V/$\mu$m (Appendix~\ref{app:perturbation}), the magnitudes of $g_{xx}$ and $g_{yy}$ increase by $\approx140\%$ and $\approx43\%$ for $\mathcal{E}\parallel y$ and decrease by $\approx16\%$ and $\approx2.5\%$ for $\mathcal{E}\parallel z$, while $|g_{zz}|$ changes by about 1\% or less. Because $g_{xx}$ and $g_{yy}$ are small, the corresponding absolute changes remain below $0.2$. In the EDSR calculations below, we keep the qubit frequency fixed. Any change of the $g$ tensor is then compensated by the magnitude of $\mathbf{B}$. The $g$-tensor modulation therefore influences the Rabi frequency only through the orientation of the quantization axis, and not through the Zeeman energy.
-
-The dependence of $g_{ii}$ on the field contains only even powers of $\mathcal{E}$. In the weak-field regime, a Schrieffer-Wolff expansion up to sixth order in $\mathcal{E}$ reproduces the numerical results; the derivation and the comparison are given in Appendix~\ref{app:perturbation}.
 
 
 
@@ -421,14 +424,14 @@ Table~\ref{tab:fR_check} compares the numerical maxima with Eq.~\eqref{eq:fRmax}
 %    h f_R = mu_B B E^ac_j / (2|g n|) * |(g n) x (g'_j n)|,   g'_j = dg/dE_j at E^dc.
 %    Diagonal g'_j from Figs. g_modulation / g_mod_per; off-diagonal g_yz' needed (allowed by symmetry).
 %    Also modulation of alpha_R by a transverse ac field ("iso-Zeeman" term).
-% 2. Size and confinement: f_R ~ l_dot^2 / l_SO; scan L (alpha_R(L), Fig. 7 of das2026anisotropic) and f_orb.
+% 2. Size and confinement: f_R ~ \ell_dot^2 / \ell_SO; scan L (alpha_R(L), Fig. 7 of das2026anisotropic) and f_orb.
 % 3. Strong-field regime: f_R vs |E^dc| up to 7 V/um and vs tilt angle; where g_yz != 0 matters.
 % 4. Charge noise and sweet spots: df_Z/dE^dc from the g modulation; candidate: g_yy = 0 point for E_z.
 % 5. Missing terms: k_x-dependent Zeeman terms (B_i k_x), orbital effect of B on the longitudinal confinement.
 % 6. f_R vs |E^dc| (figure Edc_vs_fR.pdf removed from the text): slopes ~102 MHz per V/um (E_y), ~24 MHz per V/um (E_z),
 %    f_Z = 5 GHz, B || x; insets show B dropping 1.32 -> 0.87 T for E_y <= 1 V/um (g_xx +52%) -- PRE-FIX values, recompute.
 % 7. Phonon-limited T1 [kolok2025acoustic] vs 1/f_R.
-% Limits on E^ac: f_R << f_Z (RWA); ac displacement d = |e|E^ac l_dot^2/Delta = 6 nm = 0.12 l_dot for 1 mV/um.
+% Limits on E^ac: f_R << f_Z (RWA); ac displacement d = |e|E^ac \ell_dot^2/Delta = 6 nm = 0.12 \ell_dot for 1 mV/um.
 % ======================================================================
 
 % ======================================================================
@@ -443,6 +446,7 @@ Table~\ref{tab:fR_check} compares the numerical maxima with Eq.~\eqref{eq:fRmax}
 \section{Perturbative calculation of the $g$-factor modulation}
 \label{app:perturbation}
 
+% We have verified numerically that the projected Zeeman matrices $P^\dagger(\partial H/\partial B_\alpha)P$ are proportional to $\sigma_\alpha$ for $\mathcal{E}=0$, $\mathcal{E}\parallel y$, and $\mathcal{E}\parallel z$ (admixture of the other Pauli matrices below $10^{-12}$), and that $\mathcal{E}\parallel y$ ($\mathcal{E}\parallel z$) produces a Rashba term $\propto\sigma_z$ ($\sigma_y$). The signs of the individual $g_{ii}$ depend on the pseudospin convention: interchanging the two Kramers partners, $P\to P\sigma_x$, is a $\pi$ rotation about $x$ that reverses $g_{yy}$, $g_{zz}$, $\alpha_R^{(z)}$, and $\alpha_R^{(y)}$, while $g_{xx}$ and $\det g$ are unchanged. Choosing the partner with the larger $\langle S_z\rangle$ as $\ket{v_\uparrow}$, we find the sign pattern $(g_{xx},g_{yy},g_{zz})=(-,+,-)$ for $\mathcal{E}=0$ and $\mathcal{E}\parallel y$, and $(+,-,-)$ for $\mathcal{E}\parallel z$, with $\det g>0$ in all three cases. The convention-independent spin-orbit field $\mathbf{B}_{\rm SO}\propto g^{-T}\boldsymbol{\alpha}_R$ points along $+z$ for $\mathcal{E}\parallel +y$ and along $-y$ for $\mathcal{E}\parallel +z$.
 
 
 To describe the electric-field dependence of the diagonal $g$-tensor components, we split the Hamiltonian at $k_x=0$ as
@@ -640,7 +644,7 @@ Only the part of the SOI matrix that is off-diagonal in this Zeeman eigenbasis d
 \left|
 \left[
 U_{\nhat}^{\dagger}
-H_{10}(\Edc)
+\big[\bm{\alpha}_R(\Edc)\cdot\bm{\sigma}\big]
 U_{\nhat}
 \right]_{01}
 \right|.
@@ -660,7 +664,7 @@ E_Z(\nhat)
 }
 \right|.
 \end{align}
-For the pseudospin Hamiltonian~\eqref{eq:Hpseudo}, $H_{10}=\bm{\alpha}_R\cdot\bm\sigma$ and $M_{\nhat}\propto(g\nhat)\cdot\bm\sigma$. Then $\alpha_\perp=|\bm{\alpha}_R|\,|\sin\vartheta|$, where $\vartheta$ is the angle between $g\nhat$ and $\shat$. This is the geometric form, Eq.~\eqref{eq:fR_geometric}.
+Since $M_{\nhat}\propto(g\nhat)\cdot\bm\sigma$, we have $\alpha_\perp=|\bm{\alpha}_R|\,|\sin\vartheta|$, where $\vartheta$ is the angle between $g\nhat$ and $\shat$. This is the geometric form, Eq.~\eqref{eq:fR_geometric}.
 
 \subsection{Beyond weak spin-orbit coupling}
 Write the SOI as $\lambda k_x\,\shat\cdot\bm\sigma$ with a fixed axis $\shat$, and define $\lso=\hbar^2/(|m_x^*|\lambda)$. The unitary
